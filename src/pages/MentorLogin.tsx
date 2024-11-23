@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 const MentorLogin = () => {
   const [email, setEmail] = useState("");
@@ -10,9 +11,19 @@ const MentorLogin = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here we would normally authenticate the mentor
-    if (email.match(/^mentor\.[a-z]+@gmail\.com$/)) {
+    
+    const mentors = JSON.parse(localStorage.getItem("mentors") || "[]");
+    const mentor = mentors.find((m: any) => m.email === email && m.password === password);
+
+    if (mentor) {
+      localStorage.setItem("currentMentor", JSON.stringify(mentor));
       navigate("/mentor-dashboard");
+    } else {
+      toast({
+        title: "Login Failed",
+        description: "Invalid email or password",
+        variant: "destructive"
+      });
     }
   };
 
@@ -44,6 +55,12 @@ const MentorLogin = () => {
           <Button type="submit" className="w-full">
             Login
           </Button>
+          <div className="text-center text-white">
+            Don't have an account?{" "}
+            <Button variant="link" onClick={() => navigate("/mentor-register")} className="text-primary-foreground">
+              Register here
+            </Button>
+          </div>
         </form>
       </div>
     </div>

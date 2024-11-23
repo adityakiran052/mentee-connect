@@ -13,9 +13,14 @@ const UserRegister = () => {
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Store user data in localStorage
     const users = JSON.parse(localStorage.getItem("users") || "[]");
-    users.push({ email, password, name });
+    const newUser = {
+      id: Date.now().toString(),
+      email,
+      password,
+      name
+    };
+    users.push(newUser);
     localStorage.setItem("users", JSON.stringify(users));
 
     toast({
