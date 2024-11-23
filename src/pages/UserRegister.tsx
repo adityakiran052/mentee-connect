@@ -4,37 +4,45 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
-const UserLogin = () => {
+const UserRegister = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check credentials against stored users
+    // Store user data in localStorage
     const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const user = users.find((u: any) => u.email === email && u.password === password);
+    users.push({ email, password, name });
+    localStorage.setItem("users", JSON.stringify(users));
 
-    if (user) {
-      localStorage.setItem("currentUser", JSON.stringify(user));
-      navigate("/");
-    } else {
-      toast({
-        title: "Login Failed",
-        description: "Invalid email or password",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "Registration Successful",
+      description: "Please login with your credentials",
+    });
+
+    navigate("/login");
   };
 
   return (
     <div className="min-h-screen bg-[#201336] flex items-center justify-center">
       <div className="w-full max-w-md p-8 bg-primary/20 rounded-lg shadow-lg">
         <h1 className="text-3xl font-outfit font-bold text-center mb-8 text-white">
-          User Login
+          User Registration
         </h1>
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form onSubmit={handleRegister} className="space-y-6">
+          <div>
+            <Input
+              type="text"
+              placeholder="Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full"
+              required
+            />
+          </div>
           <div>
             <Input
               type="email"
@@ -56,12 +64,12 @@ const UserLogin = () => {
             />
           </div>
           <Button type="submit" className="w-full">
-            Login
+            Register
           </Button>
           <div className="text-center text-white">
-            Don't have an account?{" "}
-            <Button variant="link" onClick={() => navigate("/register")} className="text-primary-foreground">
-              Register here
+            Already have an account?{" "}
+            <Button variant="link" onClick={() => navigate("/login")} className="text-primary-foreground">
+              Login here
             </Button>
           </div>
         </form>
@@ -70,4 +78,4 @@ const UserLogin = () => {
   );
 };
 
-export default UserLogin;
+export default UserRegister;
