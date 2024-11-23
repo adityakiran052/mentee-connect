@@ -11,7 +11,7 @@ interface MentorCardProps {
 
 export const MentorCard = ({ name, role, expertise, imageUrl }: MentorCardProps) => {
   return (
-    <Card className="mentor-card">
+    <Card className="bg-primary border-accent">
       <CardHeader className="flex items-center">
         <Avatar className="h-24 w-24">
           <AvatarImage src={imageUrl} alt={name} />
@@ -19,11 +19,11 @@ export const MentorCard = ({ name, role, expertise, imageUrl }: MentorCardProps)
         </Avatar>
       </CardHeader>
       <CardContent className="text-center">
-        <h3 className="font-outfit font-semibold text-xl mb-1">{name}</h3>
+        <h3 className="font-outfit font-semibold text-xl mb-1 text-white">{name}</h3>
         <p className="text-muted-foreground mb-3">{role}</p>
         <div className="flex flex-wrap gap-2 justify-center">
           {expertise.map((skill) => (
-            <Badge key={skill} variant="secondary" className="bg-secondary/10 text-secondary hover:bg-secondary/20">
+            <Badge key={skill} variant="secondary" className="bg-secondary/10 text-secondary-foreground hover:bg-secondary/20">
               {skill}
             </Badge>
           ))}
