@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react"; // Added missing import
 
 const MentorDashboard = () => {
   const navigate = useNavigate();
