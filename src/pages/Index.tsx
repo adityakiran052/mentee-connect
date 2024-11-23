@@ -2,7 +2,9 @@ import { MentorCard } from "@/components/MentorCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { ChatSection } from "@/components/ChatSection";
 
 const mentors = [
   {
@@ -32,31 +34,73 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [requests, setRequests] = useState<Record<string, string>>({});
+  const [chatMessages, setChatMessages] = useState<Record<string, any[]>>({});
+  const [message, setMessage] = useState("");
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+
+  useEffect(() => {
+    const storedRequests = JSON.parse(localStorage.getItem("mentorRequests") || "{}");
+    setRequests(storedRequests);
+    
+    const storedChats = JSON.parse(localStorage.getItem("chatMessages") || "{}");
+    setChatMessages(storedChats);
+  }, []);
 
   const handleConnect = (mentorId: string) => {
-    setRequests(prev => ({
-      ...prev,
-      [mentorId]: "pending"
-    }));
+    const requestId = `${currentUser.id}-${mentorId}`;
+    
+    // Check if there's already a connection request
+    const existingRequest = requests[requestId];
+    if (existingRequest) {
+      toast({
+        title: "Already Connected",
+        description: "You have already sent a connection request to this mentor.",
+      });
+      return;
+    }
+
+    const updatedRequests = {
+      ...requests,
+      [requestId]: "pending"
+    };
+    
+    setRequests(updatedRequests);
+    localStorage.setItem("mentorRequests", JSON.stringify(updatedRequests));
     
     toast({
       title: "Request Sent!",
       description: "Your connection request has been sent to the mentor.",
     });
-
-    // Store request in localStorage
-    const storedRequests = JSON.parse(localStorage.getItem("mentorRequests") || "{}");
-    storedRequests[mentorId] = "pending";
-    localStorage.setItem("mentorRequests", JSON.stringify(storedRequests));
   };
 
   const handleSignOut = () => {
+    localStorage.removeItem("currentUser");
     navigate("/login");
   };
 
+  const handleSendMessage = (requestId: string) => {
+    if (!message.trim()) return;
+
+    const newMessage = {
+      sender: currentUser.id,
+      message: message.trim(),
+      timestamp: Date.now()
+    };
+
+    const updatedMessages = {
+      ...chatMessages,
+      [requestId]: [...(chatMessages[requestId] || []), newMessage]
+    };
+
+    setChatMessages(updatedMessages);
+    localStorage.setItem("chatMessages", JSON.stringify(updatedMessages));
+    setMessage("");
+  };
+
   const getRequestStatus = (mentorId: string) => {
+    const requestId = `${currentUser.id}-${mentorId}`;
     const storedRequests = JSON.parse(localStorage.getItem("mentorRequests") || "{}");
-    return storedRequests[mentorId] || "Not Connected";
+    return storedRequests[requestId] || "Not Connected";
   };
 
   return (
@@ -77,7 +121,7 @@ const Index = () => {
           </p>
         </section>
 
-        <section>
+        <section className="mb-12">
           <h2 className="font-outfit font-semibold text-3xl text-center mb-12 text-white">Featured Mentors</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {mentors.map((mentor) => (
@@ -98,6 +142,49 @@ const Index = () => {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="bg-primary/20 rounded-lg p-6">
+          <h2 className="text-xl font-outfit mb-4 text-white">Active Chats</h2>
+          {Object.entries(requests).map(([requestId, status]) => {
+            if (status === "accepted" && requestId.startsWith(currentUser.id)) {
+              const mentorId = requestId.split('-')[1];
+              const mentor = mentors.find(m => m.id === mentorId);
+              
+              return (
+                <div key={requestId} className="bg-primary/10 p-4 rounded-lg mb-4">
+                  <h3 className="text-white mb-2">{mentor?.name}</h3>
+                  <div className="bg-primary/5 p-4 rounded-lg h-60 overflow-y-auto mb-4">
+                    {chatMessages[requestId]?.map((msg, index) => (
+                      <div
+                        key={index}
+                        className={`mb-2 ${
+                          msg.sender === currentUser.id ? "text-right" : "text-left"
+                        }`}
+                      >
+                        <span className="inline-block bg-primary/30 rounded-lg px-3 py-2 text-white">
+                          {msg.message}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Type your message..."
+                      className="flex-1"
+                    />
+                    <Button onClick={() => handleSendMessage(requestId)}>
+                      Send
+                    </Button>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })}
         </section>
       </main>
     </div>
